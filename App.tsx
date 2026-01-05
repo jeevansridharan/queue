@@ -1,6 +1,6 @@
 
-import React, { useState } from 'react';
-import { AppView, Order } from './types';
+import React, { useState, useEffect } from 'react';
+import { AppView, Order, User, UserRole } from './types';
 import StudentDashboard from './components/StudentDashboard';
 import VendorDashboard from './components/VendorDashboard';
 import AIInsights from './components/AIInsights';
@@ -9,32 +9,110 @@ import XeroxModule from './components/XeroxModule';
 import ImaginePanel from './components/ImaginePanel';
 import SearchPanel from './components/SearchPanel';
 import LivePanel from './components/LivePanel';
+import Login from './components/Login';
+import Profile from './components/Profile';
 
 const App: React.FC = () => {
+  const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<AppView>(AppView.STUDENT_DASHBOARD);
   const [orders, setOrders] = useState<Order[]>([
-    { id: '101', type: 'canteen', items: 'Masala Dosa, Coffee', total: 65, status: 'preparing', pickupSlot: '12:30 PM', timestamp: Date.now(), studentName: 'Alex' },
-    { id: '102', type: 'xerox', items: 'Physics Notes (12 pgs)', total: 24, status: 'pending', pickupSlot: '01:00 PM', timestamp: Date.now(), studentName: 'John' }
+    { id: '101', type: 'canteen', items: 'Masala Dosa, Coffee', total: 65, status: 'preparing', pickupSlot: '12:30 PM', timestamp: Date.now(), studentName: 'Updated Student' },
+    { id: '102', type: 'xerox', items: 'Physics Notes (12 pgs)', total: 24, status: 'pending', pickupSlot: '01:00 PM', timestamp: Date.now(), studentName: 'Updated Student' },
+    { id: '103', type: 'canteen', items: 'Idli Sambar, Tea', total: 45, status: 'completed', pickupSlot: '09:00 AM', timestamp: Date.now() - 86400000, studentName: 'Updated Student' },
+    { id: '104', type: 'xerox', items: 'Math Assignment (8 pgs)', total: 16, status: 'completed', pickupSlot: '10:30 AM', timestamp: Date.now() - 172800000, studentName: 'Updated Student' },
+    { id: '105', type: 'canteen', items: 'Vada Pav, Cold Coffee', total: 55, status: 'ready', pickupSlot: '02:00 PM', timestamp: Date.now() - 3600000, studentName: 'Updated Student' },
+    { id: '106', type: 'canteen', items: 'Paneer Sandwich, Juice', total: 80, status: 'completed', pickupSlot: '11:00 AM', timestamp: Date.now() - 259200000, studentName: 'Updated Student' }
   ]);
+
+  // Load user from localStorage on mount
+  useEffect(() => {
+    const savedUser = localStorage.getItem('rushx_user');
+    if (savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (e) {
+        localStorage.removeItem('rushx_user');
+      }
+    }
+  }, []);
+
+  const handleLogin = (loggedInUser: User) => {
+    setUser(loggedInUser);
+    localStorage.setItem('rushx_user', JSON.stringify(loggedInUser));
+
+    // Set default view based on role
+    if (loggedInUser.role === 'student') {
+      setCurrentView(AppView.STUDENT_DASHBOARD);
+    } else {
+      setCurrentView(AppView.VENDOR_DASHBOARD);
+    }
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('rushx_user');
+    setCurrentView(AppView.STUDENT_DASHBOARD);
+  };
+
+  const handleUpdateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+    localStorage.setItem('rushx_user', JSON.stringify(updatedUser));
+  };
 
   const addOrder = (newOrder: Order) => setOrders([newOrder, ...orders]);
   const updateStatus = (id: string, status: Order['status']) => {
     setOrders(prev => prev.map(o => o.id === id ? { ...o, status } : o));
   };
 
-  const NavItem = ({ view, label, icon }: { view: AppView, label: string, icon: string }) => (
-    <button
-      onClick={() => setCurrentView(view)}
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-        currentView === view
+  // Filter views based on user role
+  const getAvailableViews = (): AppView[] => {
+    if (!user) return [];
+
+    if (user.role === 'student') {
+      return [
+        AppView.STUDENT_DASHBOARD,
+        AppView.STUDENT_XEROX,
+        AppView.CHAT_SUPPORT,
+        AppView.AI_IMAGINE,
+        AppView.AI_SEARCH,
+        AppView.AI_VOICE,
+        AppView.PROFILE
+      ];
+    } else {
+      // Canteen and Xerox roles
+      return [AppView.VENDOR_DASHBOARD, AppView.AI_INSIGHTS, AppView.PROFILE];
+    }
+  };
+
+  const NavItem = ({ view, label, icon }: { view: AppView, label: string, icon: string }) => {
+    const availableViews = getAvailableViews();
+    if (!availableViews.includes(view)) return null;
+
+    return (
+      <button
+        onClick={() => setCurrentView(view)}
+        className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${currentView === view
           ? 'bg-orange-600/20 text-orange-400 border border-orange-500/30'
           : 'text-slate-400 hover:bg-slate-800/50'
-      }`}
-    >
-      <span>{icon}</span>
-      <span className="font-medium text-sm">{label}</span>
-    </button>
-  );
+          }`}
+      >
+        <span>{icon}</span>
+        <span className="font-medium text-sm">{label}</span>
+      </button>
+    );
+  };
+
+  // Show login if not authenticated
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  // Filter orders for vendor dashboard based on role
+  const filteredOrders = user.role === 'canteen'
+    ? orders.filter(o => o.type === 'canteen')
+    : user.role === 'xerox'
+      ? orders.filter(o => o.type === 'xerox')
+      : orders;
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden">
@@ -46,55 +124,78 @@ const App: React.FC = () => {
         </div>
 
         <div className="space-y-8">
-          <div>
-            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">Service</div>
-            <nav className="flex flex-col gap-1">
-              <NavItem view={AppView.STUDENT_DASHBOARD} label="Canteen Order" icon="🍔" />
-              <NavItem view={AppView.STUDENT_XEROX} label="Xerox Upload" icon="📄" />
-            </nav>
-          </div>
+          {user.role === 'student' && (
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">Service</div>
+              <nav className="flex flex-col gap-1">
+                <NavItem view={AppView.STUDENT_DASHBOARD} label="Canteen Order" icon="🍔" />
+                <NavItem view={AppView.STUDENT_XEROX} label="Xerox Upload" icon="📄" />
+              </nav>
+            </div>
+          )}
 
-          <div>
-            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">Management</div>
-            <nav className="flex flex-col gap-1">
-              <NavItem view={AppView.VENDOR_DASHBOARD} label="Order Queue" icon="📋" />
-              <NavItem view={AppView.AI_INSIGHTS} label="Rush Analysis" icon="📈" />
-            </nav>
-          </div>
+          {(user.role === 'canteen' || user.role === 'xerox') && (
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">Management</div>
+              <nav className="flex flex-col gap-1">
+                <NavItem view={AppView.VENDOR_DASHBOARD} label="Order Queue" icon="📋" />
+                <NavItem view={AppView.AI_INSIGHTS} label="Rush Analysis" icon="📈" />
+              </nav>
+            </div>
+          )}
 
+          {user.role === 'student' && (
+            <div>
+              <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">AI Lab</div>
+              <nav className="flex flex-col gap-1">
+                <NavItem view={AppView.CHAT_SUPPORT} label="Nexus Assistant" icon="💬" />
+                <NavItem view={AppView.AI_IMAGINE} label="Art Creator" icon="🎨" />
+                <NavItem view={AppView.AI_SEARCH} label="Smart Search" icon="🔍" />
+                <NavItem view={AppView.AI_VOICE} label="Voice Mode" icon="🎙️" />
+              </nav>
+            </div>
+          )}
+
+          {/* Profile Section - Available to All Users */}
           <div>
-            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">AI Lab</div>
+            <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">Account</div>
             <nav className="flex flex-col gap-1">
-              <NavItem view={AppView.CHAT_SUPPORT} label="Nexus Assistant" icon="💬" />
-              <NavItem view={AppView.AI_IMAGINE} label="Art Creator" icon="🎨" />
-              <NavItem view={AppView.AI_SEARCH} label="Smart Search" icon="🔍" />
-              <NavItem view={AppView.AI_VOICE} label="Voice Mode" icon="🎙️" />
+              <NavItem view={AppView.PROFILE} label="My Profile" icon="👤" />
             </nav>
           </div>
         </div>
 
         <div className="mt-auto pt-6 border-t border-slate-800">
-          <div className="flex items-center gap-3 px-2 py-3 rounded-xl bg-slate-800/30">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-500 to-indigo-500"></div>
+          <div className="flex items-center gap-3 px-2 py-3 rounded-xl bg-slate-800/30 mb-3">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-orange-500 to-indigo-500 flex items-center justify-center text-sm font-bold">
+              {user.name.charAt(0).toUpperCase()}
+            </div>
             <div className="flex-1 overflow-hidden">
-              <div className="text-xs font-bold truncate">Demo Student</div>
-              <div className="text-[10px] text-slate-500 truncate">S123456@university.edu</div>
+              <div className="text-xs font-bold truncate">{user.name}</div>
+              <div className="text-[10px] text-slate-500 truncate capitalize">{user.role}</div>
             </div>
           </div>
+          <button
+            onClick={handleLogout}
+            className="w-full px-4 py-2 text-sm text-slate-400 hover:text-orange-400 hover:bg-slate-800/50 rounded-lg transition-all"
+          >
+            🚪 Logout
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-orange-900/5 via-slate-950 to-slate-950">
         <div className="max-w-5xl mx-auto">
-          {currentView === AppView.STUDENT_DASHBOARD && <StudentDashboard onOrder={addOrder} />}
-          {currentView === AppView.STUDENT_XEROX && <XeroxModule onOrder={addOrder} />}
-          {currentView === AppView.VENDOR_DASHBOARD && <VendorDashboard orders={orders} onUpdate={updateStatus} />}
-          {currentView === AppView.AI_INSIGHTS && <AIInsights orders={orders} />}
+          {currentView === AppView.STUDENT_DASHBOARD && <StudentDashboard onOrder={addOrder} userName={user.name} />}
+          {currentView === AppView.STUDENT_XEROX && <XeroxModule onOrder={addOrder} userName={user.name} />}
+          {currentView === AppView.VENDOR_DASHBOARD && <VendorDashboard orders={filteredOrders} onUpdate={updateStatus} userRole={user.role} />}
+          {currentView === AppView.AI_INSIGHTS && <AIInsights orders={filteredOrders} />}
           {currentView === AppView.CHAT_SUPPORT && <ChatPanel />}
           {currentView === AppView.AI_IMAGINE && <ImaginePanel />}
           {currentView === AppView.AI_SEARCH && <SearchPanel />}
           {currentView === AppView.AI_VOICE && <LivePanel />}
+          {currentView === AppView.PROFILE && <Profile user={user} onUpdateUser={handleUpdateUser} orders={orders} />}
         </div>
       </main>
     </div>

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Order } from '../types';
 
-const XeroxModule: React.FC<{ onOrder: (o: Order) => void }> = ({ onOrder }) => {
+const XeroxModule: React.FC<{ onOrder: (o: Order) => void; userName: string }> = ({ onOrder, userName }) => {
   const [pages, setPages] = useState(1);
   const [isColor, setIsColor] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -19,7 +19,7 @@ const XeroxModule: React.FC<{ onOrder: (o: Order) => void }> = ({ onOrder }) => 
       status: 'pending',
       pickupSlot: '15 mins from now',
       timestamp: Date.now(),
-      studentName: 'Demo Student'
+      studentName: userName
     });
     alert("Document uploaded! Pickup in 15 mins.");
   };
@@ -35,11 +35,11 @@ const XeroxModule: React.FC<{ onOrder: (o: Order) => void }> = ({ onOrder }) => 
         <div className="mb-6">
           <label className="block text-sm font-bold text-slate-400 mb-2 uppercase">Upload Document (PDF)</label>
           <div className="border-2 border-dashed border-slate-700 rounded-2xl p-8 text-center hover:border-orange-500/50 transition-all cursor-pointer">
-            <input 
-              type="file" 
+            <input
+              type="file"
               accept=".pdf"
-              className="hidden" 
-              id="file-up" 
+              className="hidden"
+              id="file-up"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
             />
             <label htmlFor="file-up" className="cursor-pointer">
@@ -52,9 +52,9 @@ const XeroxModule: React.FC<{ onOrder: (o: Order) => void }> = ({ onOrder }) => 
         <div className="grid grid-cols-2 gap-4 mb-8">
           <div>
             <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Pages</label>
-            <input 
-              type="number" 
-              value={pages} 
+            <input
+              type="number"
+              value={pages}
               onChange={(e) => setPages(parseInt(e.target.value) || 1)}
               className="w-full bg-slate-800 border-none rounded-xl px-4 py-3 focus:ring-2 focus:ring-orange-500"
             />
@@ -62,10 +62,10 @@ const XeroxModule: React.FC<{ onOrder: (o: Order) => void }> = ({ onOrder }) => 
           <div>
             <label className="block text-xs font-bold text-slate-500 mb-2 uppercase">Mode</label>
             <div className="flex bg-slate-800 rounded-xl p-1">
-              <button 
+              <button
                 onClick={() => setIsColor(false)}
                 className={`flex-1 py-2 rounded-lg text-sm font-bold ${!isColor ? 'bg-slate-700 text-white' : 'text-slate-500'}`}>B&W</button>
-              <button 
+              <button
                 onClick={() => setIsColor(true)}
                 className={`flex-1 py-2 rounded-lg text-sm font-bold ${isColor ? 'bg-orange-600 text-white' : 'text-slate-500'}`}>Color</button>
             </div>
@@ -77,7 +77,7 @@ const XeroxModule: React.FC<{ onOrder: (o: Order) => void }> = ({ onOrder }) => 
             <span className="text-slate-500 text-sm">Calculated Cost</span>
             <div className="text-2xl font-bold">₹{price}</div>
           </div>
-          <button 
+          <button
             onClick={handleSubmit}
             className="bg-orange-600 hover:bg-orange-500 px-8 py-3 rounded-xl font-bold shadow-lg shadow-orange-500/20">
             Upload & Order

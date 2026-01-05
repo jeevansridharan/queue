@@ -9,7 +9,7 @@ const MENU: MenuItem[] = [
   { id: 'm4', name: 'Samosa (2pcs)', price: 20, category: 'Snacks' },
 ];
 
-const StudentDashboard: React.FC<{ onOrder: (o: Order) => void }> = ({ onOrder }) => {
+const StudentDashboard: React.FC<{ onOrder: (o: Order) => void; userName: string }> = ({ onOrder, userName }) => {
   const [cart, setCart] = useState<{ [id: string]: number }>({});
   const [isOrdering, setIsOrdering] = useState(false);
 
@@ -27,7 +27,7 @@ const StudentDashboard: React.FC<{ onOrder: (o: Order) => void }> = ({ onOrder }
         status: 'pending',
         pickupSlot: 'Next Available',
         timestamp: Date.now(),
-        studentName: 'Demo Student'
+        studentName: userName
       });
       setCart({});
       setIsOrdering(false);
@@ -50,11 +50,11 @@ const StudentDashboard: React.FC<{ onOrder: (o: Order) => void }> = ({ onOrder }
               <span className="text-sm text-slate-500">{item.category} • ₹{item.price}</span>
             </div>
             <div className="flex items-center gap-3">
-              <button 
+              <button
                 onClick={() => setCart(p => ({ ...p, [item.id]: Math.max(0, (p[item.id] || 0) - 1) }))}
                 className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center hover:bg-slate-700">-</button>
               <span className="w-4 text-center">{cart[item.id] || 0}</span>
-              <button 
+              <button
                 onClick={() => setCart(p => ({ ...p, [item.id]: (p[item.id] || 0) + 1 }))}
                 className="w-8 h-8 rounded-full bg-orange-600 flex items-center justify-center hover:bg-orange-500">+</button>
             </div>
@@ -68,7 +68,7 @@ const StudentDashboard: React.FC<{ onOrder: (o: Order) => void }> = ({ onOrder }
             <span className="text-slate-400">Total Amount</span>
             <span className="text-2xl font-bold text-orange-500">₹{total}</span>
           </div>
-          <button 
+          <button
             disabled={isOrdering}
             onClick={handleOrder}
             className="w-full bg-orange-600 py-4 rounded-xl font-bold text-lg hover:bg-orange-500 disabled:opacity-50 transition-all"

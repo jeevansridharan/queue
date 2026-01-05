@@ -7,7 +7,21 @@ export enum AppView {
   CHAT_SUPPORT = 'chat',
   AI_IMAGINE = 'imagine',
   AI_SEARCH = 'search',
-  AI_VOICE = 'voice'
+  AI_VOICE = 'voice',
+  PROFILE = 'profile'
+}
+
+export type UserRole = 'student' | 'canteen' | 'xerox';
+
+export interface User {
+  name: string;
+  email: string;
+  role: UserRole;
+}
+
+export interface AuthState {
+  isAuthenticated: boolean;
+  user: User | null;
 }
 
 export type OrderStatus = 'pending' | 'preparing' | 'ready' | 'completed';
