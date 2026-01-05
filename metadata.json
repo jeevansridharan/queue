@@ -1,0 +1,8 @@
+{
+  "name": "Copy of RushX",
+  "description": "Smart campus queue management and AI-powered ordering system.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
