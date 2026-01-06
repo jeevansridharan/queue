@@ -28,7 +28,7 @@ const ChatPanel: React.FC = () => {
     setMessages(prev => [...prev, { id: assistantMsgId, role: 'assistant', content: '', timestamp: Date.now() }]);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
       const stream = await ai.models.generateContentStream({
         model: 'gemini-3-flash-preview',
         contents: input,
@@ -56,11 +56,10 @@ const ChatPanel: React.FC = () => {
       <div className="flex-1 overflow-y-auto space-y-6 pb-24 scroll-smooth" ref={scrollRef}>
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}>
-            <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${
-              msg.role === 'user' 
-                ? 'bg-orange-600 text-white rounded-tr-none shadow-orange-900/20' 
+            <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${msg.role === 'user'
+                ? 'bg-orange-600 text-white rounded-tr-none shadow-orange-900/20'
                 : 'bg-slate-800 text-slate-100 border border-slate-700 rounded-tl-none'
-            }`}>
+              }`}>
               <p className="whitespace-pre-wrap leading-relaxed text-sm">{msg.content || (isTyping && msg.role === 'assistant' ? '...' : '')}</p>
               <span className="text-[10px] opacity-50 mt-2 block">
                 {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}

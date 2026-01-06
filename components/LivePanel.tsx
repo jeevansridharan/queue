@@ -7,7 +7,7 @@ const LivePanel: React.FC = () => {
   const [isActive, setIsActive] = useState(false);
   const [transcriptions, setTranscriptions] = useState<{ role: string, text: string }[]>([]);
   const [currentTranscription, setCurrentTranscription] = useState('');
-  
+
   const audioContextRef = useRef<AudioContext | null>(null);
   const outputAudioContextRef = useRef<AudioContext | null>(null);
   const sessionRef = useRef<any>(null);
@@ -28,7 +28,7 @@ const LivePanel: React.FC = () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
 
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
       audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
 
@@ -39,7 +39,7 @@ const LivePanel: React.FC = () => {
             setIsActive(true);
             const source = audioContextRef.current!.createMediaStreamSource(stream);
             const scriptProcessor = audioContextRef.current!.createScriptProcessor(4096, 1, 1);
-            
+
             scriptProcessor.onaudioprocess = (e) => {
               const inputData = e.inputBuffer.getChannelData(0);
               const pcmBlob = createPcmBlob(inputData);
@@ -128,9 +128,8 @@ const LivePanel: React.FC = () => {
         )}
         <button
           onClick={toggleSession}
-          className={`relative z-10 w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500 shadow-2xl ${
-            isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-indigo-600 hover:bg-indigo-500'
-          }`}
+          className={`relative z-10 w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500 shadow-2xl ${isActive ? 'bg-red-500 hover:bg-red-600' : 'bg-indigo-600 hover:bg-indigo-500'
+            }`}
         >
           <span className="text-4xl">{isActive ? '⏹️' : '🎙️'}</span>
         </button>

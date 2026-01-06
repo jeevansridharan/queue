@@ -9,19 +9,35 @@ const XeroxModule: React.FC<{ onOrder: (o: Order) => void; userName: string }> =
 
   const price = pages * (isColor ? 5 : 2);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!file) return alert("Please select a file.");
-    onOrder({
-      id: `X${Math.floor(Math.random() * 900)}`,
-      type: 'xerox',
-      items: `${file.name} (${pages} pgs, ${isColor ? 'Color' : 'B&W'})`,
-      total: price,
-      status: 'pending',
-      pickupSlot: '15 mins from now',
-      timestamp: Date.now(),
-      studentName: userName
-    });
-    alert("Document uploaded! Pickup in 15 mins.");
+
+    // Convert file to base64
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64Data = reader.result as string;
+
+      onOrder({
+        id: `X${Math.floor(Math.random() * 900)}`,
+        type: 'xerox',
+        items: `${file.name} (${pages} pgs, ${isColor ? 'Color' : 'B&W'})`,
+        total: price,
+        status: 'pending',
+        pickupSlot: '15 mins from now',
+        timestamp: Date.now(),
+        studentName: userName,
+        fileData: base64Data,
+        fileName: file.name,
+        fileSize: file.size
+      });
+
+      setFile(null);
+      setPages(1);
+      setIsColor(false);
+      alert("Document uploaded! Pickup in 15 mins.");
+    };
+
+    reader.readAsDataURL(file);
   };
 
   return (

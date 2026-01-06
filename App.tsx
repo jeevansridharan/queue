@@ -1,16 +1,16 @@
 
+
 import React, { useState, useEffect } from 'react';
-import { AppView, Order, User, UserRole } from './types';
+import { AppView, Order, User, UserRole, MenuItem } from './types';
 import StudentDashboard from './components/StudentDashboard';
 import VendorDashboard from './components/VendorDashboard';
 import AIInsights from './components/AIInsights';
 import ChatPanel from './components/ChatPanel';
 import XeroxModule from './components/XeroxModule';
-import ImaginePanel from './components/ImaginePanel';
-import SearchPanel from './components/SearchPanel';
 import LivePanel from './components/LivePanel';
 import Login from './components/Login';
 import Profile from './components/Profile';
+import StockManager from './components/StockManager';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -22,6 +22,15 @@ const App: React.FC = () => {
     { id: '104', type: 'xerox', items: 'Math Assignment (8 pgs)', total: 16, status: 'completed', pickupSlot: '10:30 AM', timestamp: Date.now() - 172800000, studentName: 'Updated Student' },
     { id: '105', type: 'canteen', items: 'Vada Pav, Cold Coffee', total: 55, status: 'ready', pickupSlot: '02:00 PM', timestamp: Date.now() - 3600000, studentName: 'Updated Student' },
     { id: '106', type: 'canteen', items: 'Paneer Sandwich, Juice', total: 80, status: 'completed', pickupSlot: '11:00 AM', timestamp: Date.now() - 259200000, studentName: 'Updated Student' }
+  ]);
+
+  const [menu, setMenu] = useState<MenuItem[]>([
+    { id: 'm1', name: 'Masala Dosa', price: 50, category: 'South Indian', inStock: true, stockCount: 15 },
+    { id: 'm2', name: 'Veg Burger', price: 70, category: 'Fast Food', inStock: true, stockCount: 8 },
+    { id: 'm3', name: 'Cold Coffee', price: 40, category: 'Beverages', inStock: true, stockCount: 20 },
+    { id: 'm4', name: 'Samosa (2pcs)', price: 20, category: 'Snacks', inStock: false, stockCount: 0 },
+    { id: 'm5', name: 'Paneer Sandwich', price: 60, category: 'Fast Food', inStock: true, stockCount: 5 },
+    { id: 'm6', name: 'Chai', price: 15, category: 'Beverages', inStock: true, stockCount: 30 },
   ]);
 
   // Load user from localStorage on mount
@@ -73,13 +82,14 @@ const App: React.FC = () => {
         AppView.STUDENT_DASHBOARD,
         AppView.STUDENT_XEROX,
         AppView.CHAT_SUPPORT,
-        AppView.AI_IMAGINE,
-        AppView.AI_SEARCH,
         AppView.AI_VOICE,
         AppView.PROFILE
       ];
+    } else if (user.role === 'canteen') {
+      // Canteen role gets stock management
+      return [AppView.VENDOR_DASHBOARD, AppView.STOCK_MANAGER, AppView.AI_INSIGHTS, AppView.PROFILE];
     } else {
-      // Canteen and Xerox roles
+      // Xerox role
       return [AppView.VENDOR_DASHBOARD, AppView.AI_INSIGHTS, AppView.PROFILE];
     }
   };
@@ -139,6 +149,9 @@ const App: React.FC = () => {
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">Management</div>
               <nav className="flex flex-col gap-1">
                 <NavItem view={AppView.VENDOR_DASHBOARD} label="Order Queue" icon="📋" />
+                {user.role === 'canteen' && (
+                  <NavItem view={AppView.STOCK_MANAGER} label="Stock Manager" icon="📦" />
+                )}
                 <NavItem view={AppView.AI_INSIGHTS} label="Rush Analysis" icon="📈" />
               </nav>
             </div>
@@ -149,8 +162,6 @@ const App: React.FC = () => {
               <div className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mb-4">AI Lab</div>
               <nav className="flex flex-col gap-1">
                 <NavItem view={AppView.CHAT_SUPPORT} label="Nexus Assistant" icon="💬" />
-                <NavItem view={AppView.AI_IMAGINE} label="Art Creator" icon="🎨" />
-                <NavItem view={AppView.AI_SEARCH} label="Smart Search" icon="🔍" />
                 <NavItem view={AppView.AI_VOICE} label="Voice Mode" icon="🎙️" />
               </nav>
             </div>
@@ -190,10 +201,9 @@ const App: React.FC = () => {
           {currentView === AppView.STUDENT_DASHBOARD && <StudentDashboard onOrder={addOrder} userName={user.name} />}
           {currentView === AppView.STUDENT_XEROX && <XeroxModule onOrder={addOrder} userName={user.name} />}
           {currentView === AppView.VENDOR_DASHBOARD && <VendorDashboard orders={filteredOrders} onUpdate={updateStatus} userRole={user.role} />}
+          {currentView === AppView.STOCK_MANAGER && <StockManager initialMenu={menu} onUpdateStock={setMenu} />}
           {currentView === AppView.AI_INSIGHTS && <AIInsights orders={filteredOrders} />}
           {currentView === AppView.CHAT_SUPPORT && <ChatPanel />}
-          {currentView === AppView.AI_IMAGINE && <ImaginePanel />}
-          {currentView === AppView.AI_SEARCH && <SearchPanel />}
           {currentView === AppView.AI_VOICE && <LivePanel />}
           {currentView === AppView.PROFILE && <Profile user={user} onUpdateUser={handleUpdateUser} orders={orders} />}
         </div>

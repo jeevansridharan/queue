@@ -3,6 +3,7 @@ export enum AppView {
   STUDENT_DASHBOARD = 'student_dash',
   STUDENT_XEROX = 'student_xerox',
   VENDOR_DASHBOARD = 'vendor_dash',
+  STOCK_MANAGER = 'stock_manager',
   AI_INSIGHTS = 'ai_insights',
   CHAT_SUPPORT = 'chat',
   AI_IMAGINE = 'imagine',
@@ -35,6 +36,10 @@ export interface Order {
   pickupSlot: string;
   timestamp: number;
   studentName: string;
+  // For xerox orders
+  fileData?: string; // base64 encoded file content
+  fileName?: string; // original file name
+  fileSize?: number; // file size in bytes
 }
 
 export interface MenuItem {
@@ -42,6 +47,8 @@ export interface MenuItem {
   name: string;
   price: number;
   category: string;
+  inStock: boolean;
+  stockCount?: number; // Optional: actual quantity available
 }
 
 export interface Message {

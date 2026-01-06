@@ -13,7 +13,7 @@ const ImaginePanel: React.FC = () => {
 
     setIsGenerating(true);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: {
@@ -42,7 +42,7 @@ const ImaginePanel: React.FC = () => {
           break;
         }
       }
-      
+
       if (!foundImage) {
         alert("Model didn't return an image part. It might have returned text instead.");
       }
@@ -94,7 +94,7 @@ const ImaginePanel: React.FC = () => {
             <img src={img.url} alt={img.prompt} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity p-6 flex flex-col justify-end">
               <p className="text-sm text-slate-200 line-clamp-2 italic">"{img.prompt}"</p>
-              <button 
+              <button
                 onClick={() => {
                   const link = document.createElement('a');
                   link.href = img.url;
